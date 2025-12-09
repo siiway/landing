@@ -1,0 +1,3 @@
+[submodule "cloudflare-error-page"]
+	path = cloudflare-error-page
+	url = https://github.com/donlon/cloudflare-error-page
