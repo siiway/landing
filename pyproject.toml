@@ -9,6 +9,8 @@ dependencies = [
     "cloudflare-error-page",
     "fastapi[standard]>=0.124.0",
     "loguru>=0.7.3",
+    "pyyaml>=6.0.3",
+    "uvicorn>=0.38.0",
 ]
 
 [tool.uv.sources]

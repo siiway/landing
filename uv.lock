@@ -297,6 +297,8 @@ dependencies = [
     { name = "cloudflare-error-page" },
     { name = "fastapi", extra = ["standard"] },
     { name = "loguru" },
+    { name = "pyyaml" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
@@ -304,6 +306,8 @@ requires-dist = [
     { name = "cloudflare-error-page", git = "https://github.com/donlon/cloudflare-error-page.git" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.124.0" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
+    { name = "uvicorn", specifier = ">=0.38.0" },
 ]
 
 [[package]]
