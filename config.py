@@ -3,14 +3,12 @@
 
 import typing as t
 
-from pydantic import BaseModel, field_validator
-
-# Server
-class ServerModel(BaseModel):
-    # TODO
-    pass
+from pydantic import BaseModel, field_validator, PositiveInt
+from yaml import safe_load
 
 # Logging
+
+
 class LogModel(BaseModel):
     '''
     日志配置 Model
@@ -64,5 +62,44 @@ class LogModel(BaseModel):
             raise ValueError(f'Invaild log level: {v}')
         return upper
 
-log = LogModel()
+# Server
 
+
+class ConfigModel(BaseModel):
+    log: LogModel = LogModel()
+
+    host: str = '0.0.0.0'
+    '''
+    服务监听地址 (仅在直接启动 main.py 时有效)
+    '''
+
+    port: PositiveInt = 9456
+    '''
+    服务监听端口 (仅在直接启动 main.py 时有效)
+    '''
+
+    workers: PositiveInt = 2
+    '''
+    服务 Worker 数 (仅在直接启动 main.py 时有效)
+    '''
+
+    domains: list[str] = []
+    '''
+    官方域名列表
+    '''
+
+    landing_domain: str = 'landing.siiway.org'
+    '''
+    Host fallback
+    '''
+
+
+config_dict = {}
+
+try:
+    with open('config.yaml', 'r', encoding='utf-8') as f:
+        config_dict = safe_load(f)
+except:
+    pass
+
+c = ConfigModel.model_validate(config_dict)
