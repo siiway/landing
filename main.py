@@ -17,7 +17,7 @@ from cloudflare_error_page import render  # pyright: ignore[reportMissingImports
 from config import c
 import utils as u
 
-VERSION = '2025.12.10'
+VERSION = '2025.12.11'
 reqid: ContextVar[str] = ContextVar('landing_reqid', default='not-in-request')
 
 # region init
@@ -56,6 +56,7 @@ async def lifespan(app: FastAPI):
     l.info(f'Version: {VERSION}')
     l.info(f'GitHub: https://github.com/siiway/landing')
     l.info(f'Licensed under MIT License.')
+    l.debug(f'Worker init done.')
     yield
 
 app = FastAPI(
@@ -64,6 +65,7 @@ app = FastAPI(
     openapi_url=None,
     lifespan=lifespan
 )
+
 
 @app.middleware('http')
 async def log_requests(request: Request, call_next: t.Callable):
@@ -111,9 +113,11 @@ logging.getLogger('watchfiles').level = logging.WARNING
 
 # region route
 
+
 @app.get('/favicon.ico')
 async def favicon():
     return RedirectResponse('https://icons.siiway.org/siiway/icon.svg', 301)
+
 
 @app.get('/{path:path}')
 async def handle_request(
@@ -124,53 +128,69 @@ async def handle_request(
     cf_ray = req.headers.get('CF-Ray', 'No Ray ID')
     cf_connecting_ip = req.headers.get('CF-Connecting-IP', '0.0.0.0')
     show_more_info = not u.check_domain(host, c.domains)
-    l.info(f'Render page: Host: {host}, Show more info: {show_more_info}, RayID: {cf_ray}, Connecting: {cf_connecting_ip}')
-    page = render({
-        "html_title": f"{host} | 404: Site doesn't exist",
-        "title": "Site Not Found",
-        "error_code": "404",
-        "more_information": {
-            "hidden": show_more_info,
-            "text": "siiway.org",
-            "link": "https://siiway.org",
-            "for": ""
-        },
-        "browser_status": {
-            "status": "ok",
-            "location": "",
-            "name": "",
-            "status_text": ""
-        },
-        "cloudflare_status": {
-            "status": "ok",
-            "location": "Global",
-            "name": "",
-            "status_text": ""
-        },
-        "host_status": {
-            "status": "error",
-            "location": "",
-            "name": "",
-            "status_text": "Not Found"
-        },
-        "error_source": "host",
-        "what_happened": "The site you requested is not exist.",
-        "what_can_i_do": "Please check if you spelled it wrongly.",
-        "perf_sec_by": {
-            "text": f"SiiWay Landing Page - v{VERSION}",
-            "link": "https://github.com/siiway/landing"
-        },
-        "ray_id": cf_ray,
-        "client_ip": cf_connecting_ip
-    })
-    page = u.replace_error_icon(page)
-    return HTMLResponse(
-        page,
-        status_code=404,
-        headers={
-            'X-Robots-Tag': 'noindex,nofollow,nostore'
+    ua = req.headers.get('User-Agent')
+    is_browser = u.test_ua(ua) if ua else True
+    l.debug(f'Render page: Host: {host}, Show more info: {show_more_info}, RayID: {cf_ray}, Connecting: {cf_connecting_ip}, User-Agent: {ua} (browser: {is_browser})')
+    if is_browser:
+        page = render({
+            "html_title": f"{host} | 404: Site doesn't exist",
+            "title": "Site Not Found",
+            "error_code": "404",
+            "more_information": {
+                "hidden": show_more_info,
+                "text": "siiway.org",
+                "link": "https://siiway.org",
+                "for": ""
+            },
+            "browser_status": {
+                "status": "ok",
+                "location": "",
+                "name": "",
+                "status_text": ""
+            },
+            "cloudflare_status": {
+                "status": "ok",
+                "location": "Global",
+                "name": "",
+                "status_text": ""
+            },
+            "host_status": {
+                "status": "error",
+                "location": "",
+                "name": "",
+                "status_text": "Not Found"
+            },
+            "error_source": "host",
+            "what_happened": "The site you requested is not exist.",
+            "what_can_i_do": "Please check if you spelled it wrongly.",
+            "perf_sec_by": {
+                "text": f"SiiWay Landing Page - v{VERSION}",
+                "link": "https://github.com/siiway/landing"
+            },
+            "ray_id": cf_ray,
+            "client_ip": cf_connecting_ip
+        })
+        page = u.replace_error_icon(page)
+        return HTMLResponse(
+            page,
+            status_code=404,
+            headers={
+                'X-Robots-Tag': 'noindex,nofollow,nostore'
+            }
+        )
+    else:
+        ret: dict[str, t.Any] = {
+            'status_code': 404,
+            'error': 'Site doesn\'t exist',
+            'host': host,
+            'ray_id': cf_ray,
+            'client_ip': cf_connecting_ip,
+            'version': VERSION,
+            'source': 'https://github.com/siiway/landing'
         }
-    )
+        if show_more_info:
+            ret.update({'more_info': 'https://siiway.top'})
+        return ret
 
 
 # endregion route
