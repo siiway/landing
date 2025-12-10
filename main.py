@@ -115,10 +115,6 @@ logging.getLogger('watchfiles').level = logging.WARNING
 async def favicon():
     return RedirectResponse('https://icons.siiway.org/siiway/icon.svg', 301)
 
-def check_domain(host: str, domains: list[str]) -> bool:
-    host = host.lower()
-    return any(host == d.lower() or host.endswith('.' + d.lower()) for d in domains)
-
 @app.get('/{path:path}')
 async def handle_request(
     path: str,
@@ -127,7 +123,7 @@ async def handle_request(
     host = req.headers.get('Host', c.landing_domain)
     cf_ray = req.headers.get('CF-Ray', 'No Ray ID')
     cf_connecting_ip = req.headers.get('CF-Connecting-IP', '0.0.0.0')
-    show_more_info = not check_domain(host, c.domains)
+    show_more_info = not u.check_domain(host, c.domains)
     l.info(f'Render page: Host: {host}, Show more info: {show_more_info}, RayID: {cf_ray}, Connecting: {cf_connecting_ip}')
     page = render({
         "html_title": f"{host} | 404: Site doesn't exist",
@@ -147,7 +143,7 @@ async def handle_request(
         },
         "cloudflare_status": {
             "status": "ok",
-            "location": "",
+            "location": "Global",
             "name": "",
             "status_text": ""
         },
@@ -167,6 +163,7 @@ async def handle_request(
         "ray_id": cf_ray,
         "client_ip": cf_connecting_ip
     })
+    page = u.replace_error_icon(page)
     return HTMLResponse(
         page,
         status_code=404,
