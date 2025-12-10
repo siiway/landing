@@ -1,0 +1,8 @@
+# Just rename it to config.yaml.
+host: "::"
+port: 80
+workers: 2
+domains:
+  - siiway.org
+  - siiway.top
+  - wss.moe
