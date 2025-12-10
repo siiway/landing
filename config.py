@@ -88,7 +88,7 @@ class ConfigModel(BaseModel):
     官方域名列表
     '''
 
-    landing_domain: str = 'landing.siiway.org'
+    landing_domain: str = 'landing.siiway.top'
     '''
     Host fallback
     '''
