@@ -124,16 +124,16 @@ async def handle_request(
     path: str,
     req: Request
 ):
-    host = req.headers.get('Host', c.landing_domain)
-    cf_ray = req.headers.get('CF-Ray', 'No Ray ID')
-    cf_connecting_ip = req.headers.get('CF-Connecting-IP', '0.0.0.0')
-    show_more_info = not u.check_domain(host, c.domains)
+    host = req.headers.get('Host')
+    cf_ray = req.headers.get('CF-Ray')
+    cf_connecting_ip = req.headers.get('CF-Connecting-IP')
+    show_more_info = not u.check_domain(host or c.landing_domain, c.domains)
     ua = req.headers.get('User-Agent')
     is_browser = u.test_ua(ua) if ua else True
     l.debug(f'Render page: Host: {host}, Show more info: {show_more_info}, RayID: {cf_ray}, Connecting: {cf_connecting_ip}, User-Agent: {ua} (browser: {is_browser})')
     if is_browser:
         page = render({
-            "html_title": f"{host} | 404: Site doesn't exist",
+            "html_title": f"{host or c.landing_domain} | 404: Site doesn't exist",
             "title": "Site Not Found",
             "error_code": "404",
             "more_information": {
@@ -167,8 +167,8 @@ async def handle_request(
                 "text": f"SiiWay Landing Page - v{VERSION}",
                 "link": "https://github.com/siiway/landing"
             },
-            "ray_id": cf_ray,
-            "client_ip": cf_connecting_ip
+            "ray_id": cf_ray or 'No Ray ID',
+            "client_ip": cf_connecting_ip or '0.0.0.0'
         })
         page = u.replace_error_icon(page)
         return HTMLResponse(
@@ -189,7 +189,7 @@ async def handle_request(
             'source': 'https://github.com/siiway/landing'
         }
         if show_more_info:
-            ret.update({'more_info': 'https://siiway.top'})
+            ret.update({'more_info': 'https://siiway.org'})
         return ret
 
 

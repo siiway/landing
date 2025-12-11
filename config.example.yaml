@@ -6,3 +6,5 @@ domains:
   - siiway.org
   - siiway.top
   - wss.moe
+log:
+  level: debug
