@@ -150,9 +150,9 @@ async def handle_request(
             },
             "cloudflare_status": {
                 "status": "ok",
-                "location": "Global",
+                "location": "Pyongyang(North Korea)",
                 "name": "",
-                "status_text": ""
+                "status_text": "Banging"
             },
             "host_status": {
                 "status": "error",
