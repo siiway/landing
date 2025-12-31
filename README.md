@@ -6,7 +6,7 @@ Used project: https://github.com/donlon/cloudflare-error-page
 
 ## Preview
 
-<landing.siiway.top>
+[landing.siiway.top](https://landing.siiway.top)
 
 just create a CNAME record points to it.
 
