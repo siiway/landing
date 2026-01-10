@@ -10,5 +10,5 @@ domains:
   - siiway.qzz.io
 log:
   level: debug
-  rotation: 10M
+  rotation: 10mb
   retention: 5
