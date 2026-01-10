@@ -6,5 +6,9 @@ domains:
   - siiway.org
   - siiway.top
   - wss.moe
+  - siinodes.dpdns.org
+  - siiway.qzz.io
 log:
   level: debug
+  rotation: 10M
+  retention: 5
