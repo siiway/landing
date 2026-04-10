@@ -8,6 +8,9 @@ domains:
   - wss.moe
   - siinodes.dpdns.org
   - siiway.qzz.io
+  - neuro.fan
+  - neuro.fans
+  - evo.bi
 log:
   level: debug
   rotation: 10mb
