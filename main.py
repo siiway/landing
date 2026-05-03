@@ -13,12 +13,12 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from uvicorn import run
 
-from cloudflare_error_page import render  # pyright: ignore[reportMissingImports]
+from cloudflare_error_page import render
 from config import c
 import utils as u
 
-VERSION = '2025.12.11'
-reqid: ContextVar[str] = ContextVar('landing_reqid', default='not-in-request')
+VERSION = "2026.5.3"
+reqid: ContextVar[str] = ContextVar("landing_reqid", default="not-in-request")
 
 # region init
 
@@ -28,18 +28,16 @@ async def lifespan(app: FastAPI):
     # init logger
     l.remove()
 
-    # 定义日志格式，包含 reqid
+    # log format
     def log_format(record):
-        reqid = record['extra'].get('reqid', 'fallback-logid')
-        return '<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | <yellow>' + reqid + '</yellow> | <cyan>{name}</cyan>:<cyan>{line}</cyan> | <level>{message}</level>\n'
+        reqid = record["extra"].get("reqid", "fallback-logid")
+        return (
+            "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | <yellow>"
+            + reqid
+            + "</yellow> | <cyan>{name}</cyan>:<cyan>{line}</cyan> | <level>{message}</level>\n"
+        )
 
-    l.add(
-        stderr,
-        level=c.log.level,
-        format=log_format,
-        backtrace=True,
-        diagnose=True
-    )
+    l.add(stderr, level=c.log.level, format=log_format, backtrace=True, diagnose=True)
 
     if c.log.file:
         l.add(
@@ -49,49 +47,49 @@ async def lifespan(app: FastAPI):
             colorize=False,
             rotation=c.log.rotation,
             retention=c.log.retention,
-            enqueue=True
+            enqueue=True,
         )
-    l.configure(extra={'reqid': 'not-in-request'})
-    l.info('SiiWay Landing Page')
-    l.info(f'Version: {VERSION}')
-    l.info(f'GitHub: https://github.com/siiway/landing')
-    l.info(f'Licensed under MIT License.')
-    l.debug(f'Worker init done.')
+    l.configure(extra={"reqid": "not-in-request"})
+    l.info("SiiWay Landing Page")
+    l.info(f"Version: {VERSION}")
+    l.info("GitHub: https://github.com/siiway/landing")
+    l.info("Licensed under MIT License.")
+    l.debug("Worker init done.")
     yield
 
-app = FastAPI(
-    docs_url=None,
-    redoc_url=None,
-    openapi_url=None,
-    lifespan=lifespan
-)
+
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
 
 
-@app.middleware('http')
+@app.middleware("http")
 async def log_requests(request: Request, call_next: t.Callable):
     request_id = str(uuid())
     token = reqid.set(request_id)
     with l.contextualize(reqid=request_id):
         if request.client:
-            ip = f'[{request.client.host}]' if ':' in request.client.host else request.client.host
+            ip = (
+                f"[{request.client.host}]"
+                if ":" in request.client.host
+                else request.client.host
+            )
             port = request.client.port
         else:
-            ip = 'unknown-ip'
+            ip = "unknown-ip"
             port = 0
         # rev_ip = request.headers.get('CF-Connecting-IP') or request.headers.get('X-Forwarded-For')
         # {f" ({rev_ip})" if rev_ip else ""}
-        l.info(f'Incoming request: {ip}:{port} - {request.method} {request.url.path}')
+        l.info(f"Incoming request: {ip}:{port} - {request.method} {request.url.path}")
         try:
             p = u.perf_counter()
             resp: Response = await call_next(request)
-            l.info(f'Outgoing response: {resp.status_code} ({p()}ms)')
+            l.info(f"Outgoing response: {resp.status_code} ({p()}ms)")
             return resp
         except Exception as e:
-            l.error(f'Server error: {e} ({p()}ms)\n{format_exc()}')
-            resp = Response(f'Internal Server Error ({request_id})', 500)
+            l.error(f"Server error: {e} ({p()}ms)\n{format_exc()}")
+            resp = Response(f"Internal Server Error ({request_id})", 500)
         finally:
-            resp.headers['X-Landing-Version'] = VERSION
-            resp.headers['X-Landing-Request-Id'] = request_id
+            resp.headers["X-Landing-Version"] = VERSION
+            resp.headers["X-Landing-Request-Id"] = request_id
             reqid.reset(token)
             return resp
 
@@ -102,94 +100,88 @@ class InterceptHandler(logging.Handler):
         logger_opt.log(record.levelname, record.getMessage())
 
 
-logging.getLogger('uvicorn').handlers.clear()
-logging.getLogger('uvicorn.access').handlers.clear()
-logging.getLogger('uvicorn.error').handlers.clear()
+logging.getLogger("uvicorn").handlers.clear()
+logging.getLogger("uvicorn.access").handlers.clear()
+logging.getLogger("uvicorn.error").handlers.clear()
 logging.getLogger().handlers = [InterceptHandler()]
 logging.getLogger().setLevel(c.log.level)
-logging.getLogger('watchfiles').level = logging.WARNING
+logging.getLogger("watchfiles").level = logging.WARNING
 
 # endregion init
 
 # region route
 
 
-@app.get('/favicon.ico')
+@app.get("/favicon.ico")
 async def favicon():
-    return RedirectResponse('https://icons.siiway.org/siiway/icon.svg', 301)
+    return RedirectResponse("https://icons.siiway.org/siiway/icon.svg", 301)
 
 
-@app.get('/{path:path}')
-async def handle_request(
-    path: str,
-    req: Request
-):
-    host = req.headers.get('Host')
-    cf_ray = req.headers.get('CF-Ray')
-    cf_connecting_ip = req.headers.get('CF-Connecting-IP')
+@app.get("/{path:path}")
+async def handle_request(path: str, req: Request):
+    host = req.headers.get("Host")
+    cf_ray = req.headers.get("CF-Ray")
+    cf_connecting_ip = req.headers.get("CF-Connecting-IP")
     show_more_info = not u.check_domain(host or c.landing_domain, c.domains)
-    ua = req.headers.get('User-Agent')
+    ua = req.headers.get("User-Agent")
     is_browser = u.test_ua(ua) if ua else True
-    l.debug(f'Render page: Host: {host}, Show more info: {show_more_info}, RayID: {cf_ray}, Connecting: {cf_connecting_ip}, User-Agent: {ua} (browser: {is_browser})')
+    l.debug(
+        f"Render page: Host: {host!r}, Show more info: {show_more_info!r}, RayID: {cf_ray!r}, Connecting: {cf_connecting_ip!r}, User-Agent: {ua!r} (browser: {is_browser})"
+    )
     if is_browser:
-        page = render({
-            "html_title": f"{host or c.landing_domain} | 404: Site doesn't exist",
-            "title": "Site Not Found",
-            "error_code": "404",
-            "more_information": {
-                "hidden": show_more_info,
-                "text": "siiway.org",
-                "link": "https://siiway.org",
-                "for": ""
-            },
-            "browser_status": {
-                "status": "ok",
-                "location": "",
-                "name": "",
-                "status_text": ""
-            },
-            "cloudflare_status": {
-                "status": "ok",
-                "location": "Global",
-                "name": "",
-                "status_text": ""
-            },
-            "host_status": {
-                "status": "error",
-                "location": "",
-                "name": "",
-                "status_text": "Not Found"
-            },
-            "error_source": "host",
-            "what_happened": "The site you requested is not exist.",
-            "what_can_i_do": "Please check if you spelled it wrongly.",
-            "perf_sec_by": {
-                "text": f"SiiWay Landing Page - v{VERSION}",
-                "link": "https://github.com/siiway/landing"
-            },
-            "ray_id": cf_ray or 'No Ray ID',
-            "client_ip": cf_connecting_ip or '0.0.0.0'
-        })
-        page = u.replace_error_icon(page)
-        return HTMLResponse(
-            page,
-            status_code=404,
-            headers={
-                'X-Robots-Tag': 'noindex,nofollow,nostore'
+        page = render(
+            {
+                "html_title": f"{host or c.landing_domain} | 404: Site doesn't exist",
+                "title": "Site Not Found",
+                "error_code": "404",
+                "more_information": {
+                    "hidden": show_more_info,
+                    "text": "siiway.org",
+                    "link": "https://siiway.org",
+                },
+                "browser_status": {
+                    "status": "ok",
+                    "location": "",
+                    "name": "",
+                    "status_text": "",
+                },
+                "cloudflare_status": {
+                    "status": "ok",
+                    "location": "Global",
+                    "name": "",
+                    "status_text": "",
+                },
+                "host_status": {
+                    "status": "error",
+                    "location": "",
+                    "name": "",
+                    "status_text": "Not Found",
+                },
+                "error_source": "host",
+                "what_happened": "The site you requested is not exist.",
+                "what_can_i_do": "Please check if you spelled it wrongly.",
+                "perf_sec_by": {
+                    "text": f"SiiWay Landing Page - v{VERSION}",
+                    "link": "https://github.com/siiway/landing",
+                },
+                "ray_id": cf_ray or "No Ray ID",
+                "client_ip": cf_connecting_ip or "0.0.0.0",
             }
         )
+        page = u.replace_error_icon(page)
+        return HTMLResponse(page, status_code=404, headers={"X-Robots-Tag": "none"})
     else:
         ret: dict[str, t.Any] = {
-            'status_code': 404,
-            'error': 'Site doesn\'t exist',
-            'host': host,
-            'ray_id': cf_ray,
-            'client_ip': cf_connecting_ip,
-            'version': VERSION,
-            'source': 'https://github.com/siiway/landing'
+            "status_code": 404,
+            "error": "Site doesn't exist",
+            "host": host,
+            "ray_id": cf_ray,
+            "client_ip": cf_connecting_ip,
+            "version": VERSION,
+            "source": "https://github.com/siiway/landing",
         }
         if show_more_info:
-            ret.update({'more_info': 'https://siiway.org'})
+            ret.update({"more_info": "https://siiway.org"})
         return ret
 
 
@@ -197,10 +189,12 @@ async def handle_request(
 
 # region main
 
-if __name__ == '__main__':
-    l.info(f'Starting server: {f"[{c.host}]" if ":" in c.host else c.host}:{c.port} with {c.workers} workers')
-    run('main:app', host=c.host, port=c.port, workers=c.workers)
+if __name__ == "__main__":
+    l.info(
+        f"Starting server: {f'[{c.host}]' if ':' in c.host else c.host}:{c.port} with {c.workers} workers"
+    )
+    run("main:app", host=c.host, port=c.port, workers=c.workers)
     print()
-    l.info('Bye.')
+    l.info("Bye.")
 
 # endregion main
