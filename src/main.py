@@ -11,7 +11,6 @@ from traceback import format_exc
 from loguru import logger as l
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
-from uvicorn import run
 
 from cloudflare_error_page import render
 from config import c
@@ -186,15 +185,3 @@ async def handle_request(path: str, req: Request):
 
 
 # endregion route
-
-# region main
-
-if __name__ == "__main__":
-    l.info(
-        f"Starting server: {f'[{c.host}]' if ':' in c.host else c.host}:{c.port} with {c.workers} workers"
-    )
-    run("main:app", host=c.host, port=c.port, workers=c.workers)
-    print()
-    l.info("Bye.")
-
-# endregion main

@@ -1,10 +1,10 @@
 # coding: utf-8
 # Configs
 
+import os
 import typing as t
 
 from pydantic import BaseModel, field_validator, PositiveInt
-from yaml import safe_load
 
 # Logging
 
@@ -97,12 +97,49 @@ class ConfigModel(BaseModel):
     """
 
 
-config_dict = {}
+def _parse_list(value: str | None) -> list[str] | None:
+    if value is None:
+        return None
+    items = [item.strip() for item in value.split(",") if item.strip()]
+    return items if items else []
 
-try:
-    with open("config.yaml", "r", encoding="utf-8") as f:
-        config_dict = safe_load(f)
-except Exception:
-    pass
 
-c = ConfigModel.model_validate(config_dict)
+def _load_env_config() -> dict[str, t.Any]:
+    env = os.environ
+    cfg: dict[str, t.Any] = {}
+
+    if value := env.get("HOST"):
+        cfg["host"] = value
+    if value := env.get("PORT"):
+        try:
+            cfg["port"] = int(value)
+        except ValueError:
+            pass
+    if value := env.get("WORKERS"):
+        try:
+            cfg["workers"] = int(value)
+        except ValueError:
+            pass
+    if value := _parse_list(env.get("DOMAINS")):
+        cfg["domains"] = value
+    if value := env.get("LANDING_DOMAIN"):
+        cfg["landing_domain"] = value
+
+    log_cfg: dict[str, t.Any] = {}
+    if value := env.get("LOG_LEVEL"):
+        log_cfg["level"] = value
+    if value := env.get("LOG_FILE"):
+        log_cfg["file"] = value
+    if value := env.get("LOG_FILE_LEVEL"):
+        log_cfg["file_level"] = value
+    if value := env.get("LOG_ROTATION"):
+        log_cfg["rotation"] = value
+    if value := env.get("LOG_RETENTION"):
+        log_cfg["retention"] = value
+    if log_cfg:
+        cfg["log"] = log_cfg
+
+    return cfg
+
+
+c = ConfigModel.model_validate(_load_env_config())

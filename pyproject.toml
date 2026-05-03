@@ -6,11 +6,9 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "cloudflare-error-page",
-    "fastapi[standard]",
+    "fastapi>=0.136",
     "loguru>=0.7.3",
-    "pyyaml",
     "user-agents>=2.2.0",
-    "uvicorn>=0.46.0",
 ]
 
 [dependency-groups]
