@@ -1,0 +1,17 @@
+# Just rename it to config.yaml.
+host: "::"
+port: 80
+workers: 2
+domains:
+  - siiway.org
+  - siiway.top
+  - wss.moe
+  - siinodes.dpdns.org
+  - siiway.qzz.io
+  - neuro.fan
+  - neuro.fans
+  - evo.bi
+log:
+  level: debug
+  rotation: 10mb
+  retention: 5
