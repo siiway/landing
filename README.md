@@ -1,18 +1,18 @@
 # landing
 
-SiiWay Domains Landing Page (?)
+SiiWay Domains Landing Page (?) - **Cloudflare Workers Edition**
 
 Project used: https://github.com/donlon/cloudflare-error-page
 
-## Preview
+<!-- ## Preview
 
 [landing.siiway.top](https://landing.siiway.top)
 
 just create a CNAME record points to it.
 
-> remember to enable `proxied` switch in cf dash, or `reverse proxy` / `CDN`.
+> remember to enable `proxied` switch in cf dash, or `reverse proxy` / `CDN`. -->
 
-## Deploy
+<!-- ## Deploy
 
 ```bash
 # Setup
@@ -22,7 +22,28 @@ cp config.example.yaml config.yaml
 uv sync
 # Run
 uv run main.py
+``` -->
+
+## Cloudflare deploy config
+
+The Worker can also read configuration from environment variables when deployed.
+Set values in `wrangler.jsonc` under `vars`, for example:
+
+```jsonc
+{
+  "vars": {
+    "DOMAINS": "siiway.org,siiway.top",
+    "LANDING_DOMAIN": "landing.siiway.top",
+    "LOG_LEVEL": "DEBUG"
+  }
+}
 ```
+
+The Worker reads configuration only from environment variables in Cloudflare deployments.
+
+## Legacy
+
+Legacy version (run on your server) is on the [`legacy` branch](https://github.com/siiway/landing/tree/legacy).
 
 <!--
 ## Usage

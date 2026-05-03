@@ -1,5 +1,9 @@
-from workers import Response, WorkerEntrypoint  # ty:ignore[unresolved-import]
-from submodule import get_hello_message
+import asgi
+from workers import WorkerEntrypoint
+
+from main import app
+
+
 class Default(WorkerEntrypoint):
     async def fetch(self, request):
-        return Response(get_hello_message())
+        return await asgi.fetch(app, request.js_object, self.env)

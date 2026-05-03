@@ -1,4 +1,6 @@
-# Just rename it to config.yaml.
+# This CF Workers branch does not use config.yaml.
+# Use Wrangler env vars instead.
+
 host: "::"
 port: 80
 workers: 2
