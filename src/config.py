@@ -26,7 +26,7 @@ class LogModel(BaseModel):
 
     file: str | None = "logs/{time:YYYY-MM-DD}.log"
     """
-    日志文件保存格式 (for Loguru)
+    日志文件保存格式 (for standard Python logging)
     - 设置为 None 以禁用
     """
 
@@ -44,12 +44,12 @@ class LogModel(BaseModel):
 
     rotation: str | int = "1 days"
     """
-    配置 Loguru 的 rotation (轮转周期) 设置
+    日志轮转周期（未在标准 logging 中使用）
     """
 
     retention: str | int = "3 days"
     """
-    配置 Loguru 的 retention (轮转保留) 设置
+    日志轮转保留（未在标准 logging 中使用）
     """
 
     @field_validator("level", "file_level", mode="before")

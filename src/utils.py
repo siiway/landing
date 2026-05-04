@@ -1,9 +1,11 @@
 # coding: utf-8
 
+import logging
 from time import perf_counter as _perf_counter
 
 from user_agents import parse as parse_ua
-from loguru import logger as l
+
+logger = logging.getLogger("landing")
 
 
 def test_ua(ua: str) -> bool:
@@ -11,7 +13,7 @@ def test_ua(ua: str) -> bool:
     return whether is browser or not
     """
     lower = ua.lower()
-    l.debug(f"[test_ua] ua: {lower}")
+    logger.debug(f"[test_ua] ua: {lower}")
     for i in [
         # 经典命令行工具
         "curl",
@@ -131,10 +133,10 @@ def test_ua(ua: str) -> bool:
         "dareboost",
     ]:
         if i in lower:
-            l.debug(f"[test_ua] matched ua: {i}, return False")
+            logger.debug(f"[test_ua] matched ua: {i}, return False")
             return False
     result = parse_ua(ua)
-    l.debug(f"[test_ua] parsed: {result}")
+    logger.debug(f"[test_ua] parsed: {result}")
     return any(
         (result.is_pc, result.is_mobile, result.is_tablet, result.is_touch_capable)
     )

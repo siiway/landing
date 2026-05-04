@@ -1,8 +1,11 @@
 # landing
 
-SiiWay Domains Landing Page (?) - **Cloudflare Workers Edition**
+SiiWay Domains Landing Page - *Cloudflare Workers Edition*
 
 Project used: https://github.com/donlon/cloudflare-error-page
+
+> [!WARNING]
+> This branch **should not be used** because Cloudflare Workers / Pages doesn't support to configure **wildcard custom domain**, which is important to the functionality of this program.
 
 <!-- ## Preview
 
@@ -41,9 +44,9 @@ Set values in `wrangler.jsonc` under `vars`, for example:
 
 The Worker reads configuration only from environment variables in Cloudflare deployments.
 
-## Legacy
+<!-- ## Legacy
 
-Legacy version (run on your server) is on the [`legacy` branch](https://github.com/siiway/landing/tree/legacy).
+Legacy version (run on your server) is on the [`legacy` branch](https://github.com/siiway/landing/tree/legacy). -->
 
 <!--
 ## Usage
