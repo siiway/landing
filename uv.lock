@@ -109,7 +109,6 @@ source = { virtual = "." }
 dependencies = [
     { name = "cloudflare-error-page" },
     { name = "fastapi" },
-    { name = "loguru" },
     { name = "user-agents" },
 ]
 
@@ -122,8 +121,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cloudflare-error-page", git = "https://github.com/donlon/cloudflare-error-page.git" },
-    { name = "fastapi" },
-    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "fastapi", specifier = ">=0.136" },
     { name = "user-agents", specifier = ">=2.2.0" },
 ]
 
@@ -131,19 +129,6 @@ requires-dist = [
 dev = [
     { name = "workers-py" },
     { name = "workers-runtime-sdk" },
-]
-
-[[package]]
-name = "loguru"
-version = "0.7.3"
-source = { registry = "https://mirrors.cernet.edu.cn/pypi/web/simple" }
-dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
-    { name = "win32-setctime", marker = "sys_platform == 'win32'" },
-]
-sdist = { url = "https://cmcc.mirrors.ustc.edu.cn/pypi/packages/3a/05/a1dae3dffd1116099471c643b8924f5aa6524411dc6c63fdae648c4f1aca/loguru-0.7.3.tar.gz", hash = "sha256:19480589e77d47b8d85b2c827ad95d49bf31b0dcde16593892eb51dd18706eb6", size = 63559, upload-time = "2024-12-06T11:20:56.608Z" }
-wheels = [
-    { url = "https://cmcc.mirrors.ustc.edu.cn/pypi/packages/0c/29/0348de65b8cc732daa3e33e67806420b2ae89bdce2b04af740289c5c6c8c/loguru-0.7.3-py3-none-any.whl", hash = "sha256:31a33c10c8e1e10422bfd431aeb5d351c7cf7fa671e3c4df004162264b28220c", size = 61595, upload-time = "2024-12-06T11:20:54.538Z" },
 ]
 
 [[package]]
@@ -465,15 +450,6 @@ dependencies = [
 sdist = { url = "https://cmcc.mirrors.ustc.edu.cn/pypi/packages/e3/e1/63c5bfb485a945010c8cbc7a52f85573561737648d36b30394248730a7bc/user-agents-2.2.0.tar.gz", hash = "sha256:d36d25178db65308d1458c5fa4ab39c9b2619377010130329f3955e7626ead26", size = 9525, upload-time = "2020-08-23T06:01:56.382Z" }
 wheels = [
     { url = "https://cmcc.mirrors.ustc.edu.cn/pypi/packages/8f/1c/20bb3d7b2bad56d881e3704131ddedbb16eb787101306887dff349064662/user_agents-2.2.0-py3-none-any.whl", hash = "sha256:a98c4dc72ecbc64812c4534108806fb0a0b3a11ec3fd1eafe807cee5b0a942e7", size = 9614, upload-time = "2020-08-23T06:01:54.047Z" },
-]
-
-[[package]]
-name = "win32-setctime"
-version = "1.2.0"
-source = { registry = "https://mirrors.cernet.edu.cn/pypi/web/simple" }
-sdist = { url = "https://cmcc.mirrors.ustc.edu.cn/pypi/packages/b3/8f/705086c9d734d3b663af0e9bb3d4de6578d08f46b1b101c2442fd9aecaa2/win32_setctime-1.2.0.tar.gz", hash = "sha256:ae1fdf948f5640aae05c511ade119313fb6a30d7eabe25fef9764dca5873c4c0", size = 4867, upload-time = "2024-12-07T15:28:28.314Z" }
-wheels = [
-    { url = "https://cmcc.mirrors.ustc.edu.cn/pypi/packages/e1/07/c6fe3ad3e685340704d314d765b7912993bcb8dc198f0e7a89382d37974b/win32_setctime-1.2.0-py3-none-any.whl", hash = "sha256:95d644c4e708aba81dc3704a116d8cbc974d70b3bdb8be1d150e36be6e9d1390", size = 4083, upload-time = "2024-12-07T15:28:26.465Z" },
 ]
 
 [[package]]
