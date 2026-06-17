@@ -17,7 +17,7 @@ from cloudflare_error_page import render
 from config import c
 import utils as u
 
-VERSION = "2026.5.3"
+VERSION = "2026.6.17"
 reqid: ContextVar[str] = ContextVar("landing_reqid", default="not-in-request")
 
 # region init
