@@ -1,23 +1,26 @@
-# coding: utf-8
-
 import logging
-from contextvars import ContextVar
-from contextlib import asynccontextmanager
-from sys import stderr
 import typing as t
-from uuid import uuid4 as uuid
+from contextlib import asynccontextmanager
+from contextvars import ContextVar
+from sys import stderr
 from traceback import format_exc
-
-from loguru import logger as l
-from fastapi import FastAPI, Request, Response
-from fastapi.responses import HTMLResponse, RedirectResponse
-from uvicorn import run
+from uuid import uuid4 as uuid
 
 from cloudflare_error_page import render
-from config import c
-import utils as u
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+)
+from loguru import logger as l
+from uvicorn import run
 
-VERSION = "2026.6.17"
+import utils as u
+from config import c
+
+VERSION = "2026.8.5"
 reqid: ContextVar[str] = ContextVar("landing_reqid", default="not-in-request")
 
 # region init
@@ -84,14 +87,13 @@ async def log_requests(request: Request, call_next: t.Callable):
             resp: Response = await call_next(request)
             l.info(f"Outgoing response: {resp.status_code} ({p()}ms)")
             return resp
-        except Exception as e:
+        except Exception as e:  # ruff: ignore[BLE001]
             l.error(f"Server error: {e} ({p()}ms)\n{format_exc()}")
             resp = Response(f"Internal Server Error ({request_id})", 500)
-        finally:
-            resp.headers["X-Landing-Version"] = VERSION
-            resp.headers["X-Landing-Request-Id"] = request_id
-            reqid.reset(token)
-            return resp
+        resp.headers["X-Landing-Version"] = VERSION
+        resp.headers["X-Landing-Request-Id"] = request_id
+        reqid.reset(token)
+        return resp
 
 
 class InterceptHandler(logging.Handler):
@@ -117,16 +119,32 @@ async def favicon():
     return RedirectResponse("https://icons.siiway.org/siiway/icon.svg", 301)
 
 
+# prepare plain response
+plain_resp = PlainTextResponse(
+    "Site Not Found", status_code=404, headers={"X-Robots-Tag": "None"}
+)
+
+
 @app.get("/{path:path}")
 async def handle_request(path: str, req: Request):
+    ua = req.headers.get("User-Agent")
+    if not ua:
+        l.debug("No UA, response plain text")
+        return plain_resp
+    for m in c.automated_exclude:
+        if m in req.url.path:
+            l.debug(f"Automated path {m!r} matched, response plain text")
+            return plain_resp
+
     host = req.headers.get("Host")
     cf_ray = req.headers.get("CF-Ray")
     cf_connecting_ip = req.headers.get("CF-Connecting-IP")
+    origin_ip = req.client.host or None  # ty: ignore[unresolved-attribute]
     show_more_info = not u.check_domain(host or c.landing_domain, c.domains)
-    ua = req.headers.get("User-Agent")
-    is_browser = u.test_ua(ua) if ua else True
+
+    is_browser = u.test_ua(ua)
     l.debug(
-        f"Render page: Host: {host!r}, Show more info: {show_more_info!r}, RayID: {cf_ray!r}, Connecting: {cf_connecting_ip!r}, User-Agent: {ua!r} (browser: {is_browser})"
+        f"Render page: Host: {host!r}, Show more info: {show_more_info!r}, RayID: {cf_ray!r}, Connecting: {cf_connecting_ip!r}, Origin: {origin_ip!r}, User-Agent: {ua!r} (browser: {is_browser})"
     )
     if is_browser:
         page = render(
@@ -165,7 +183,7 @@ async def handle_request(path: str, req: Request):
                     "link": "https://github.com/siiway/landing",
                 },
                 "ray_id": cf_ray or "No Ray ID",
-                "client_ip": cf_connecting_ip or "0.0.0.0",
+                "client_ip": cf_connecting_ip or origin_ip or "0.0.0.0",
             }
         )
         page = u.replace_error_icon(page)
@@ -182,7 +200,7 @@ async def handle_request(path: str, req: Request):
         }
         if show_more_info:
             ret.update({"more_info": "https://siiway.org"})
-        return ret
+        return JSONResponse(ret, status_code=404, headers={"X-Robots-Tag": "none"})
 
 
 # endregion route

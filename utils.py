@@ -1,9 +1,7 @@
-# coding: utf-8
-
 from time import perf_counter as _perf_counter
 
-from user_agents import parse as parse_ua
 from loguru import logger as l
+from user_agents import parse as parse_ua
 
 
 def test_ua(ua: str) -> bool:

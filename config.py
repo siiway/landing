@@ -1,9 +1,8 @@
-# coding: utf-8
 # Configs
 
 import typing as t
 
-from pydantic import BaseModel, field_validator, PositiveInt
+from pydantic import BaseModel, PositiveInt, field_validator
 from yaml import safe_load
 
 # Logging
@@ -57,7 +56,7 @@ class LogModel(BaseModel):
         if v is None:
             return v
         if not isinstance(v, str):
-            raise ValueError(f"Invaild log level: {v}")
+            raise TypeError(f"Invaild log level: {v}")
         upper = v.strip().upper()
         valid = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
         if upper not in valid:
@@ -96,13 +95,18 @@ class ConfigModel(BaseModel):
     Host fallback
     """
 
+    automated_exclude: list[str] = ["wp-", ".php", ".source"]
+    """
+    命中这些常见的自动化扫描器路径或 UA 为空时，强制返回字符串 `Site Not Found` 而非渲染网页 / json 以减轻服务器负担
+    """
+
 
 config_dict = {}
 
 try:
     with open("config.yaml", "r", encoding="utf-8") as f:
         config_dict = safe_load(f)
-except Exception:
-    pass
+except Exception as e:  # ruff: ignore[BLE001]
+    print(f"Load config.yaml failed: {e}")
 
 c = ConfigModel.model_validate(config_dict)
