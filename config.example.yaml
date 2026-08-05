@@ -1,0 +1,11 @@
+# Just rename it to config.yaml.
+host: "::"
+port: 80
+workers: 2
+domains:
+  - siiway.org
+  - wss.moe
+log:
+  level: debug
+  rotation: 10mb
+  retention: 5
